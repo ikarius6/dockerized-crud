@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  crud_mongodb:
+    image: mongo:latest
+    container_name: crud_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+  crud_nodeapp:
+    image: node:18
+    container_name: crud_nodeapp
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npm install && node index.js"
+    depends_on:
+      - crud_mongodb
+
+  crud_reactapp:
+    image: node:14
+    container_name: crud_reactapp
+    working_dir: /app
+    volumes:
+      - ./react-app:/app
+    ports:
+      - "3001:3000"
+    command: >
+      sh -c "npm install && npm start"
+    depends_on:
+      - crud_nodeapp
+
+volumes:
+  mongodb_data:
